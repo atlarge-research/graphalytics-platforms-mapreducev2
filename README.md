@@ -1,5 +1,7 @@
 # Graphalytics MapReduce V2 platform extension
 
+[![Build Status](http://jenkins.tribler.org/buildStatus/icon?job=Graphalytics_MapReduceV2_master_tester)](http://jenkins.tribler.org/job/Graphalytics_MapReduceV2_master_tester/)
+
 
 ## Getting started
 
