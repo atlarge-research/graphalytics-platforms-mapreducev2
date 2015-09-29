@@ -43,6 +43,7 @@ import org.apache.logging.log4j.Logger;
 public abstract class MapReduceJob<ParamType> extends Configured implements Tool {
 	private static final Logger LOG = LogManager.getLogger();
 
+	protected String jobName;
 	private String inputPath;
 	private String intermediatePath;
 	private String outputPath;
@@ -125,8 +126,11 @@ public abstract class MapReduceJob<ParamType> extends Configured implements Tool
         	iteration++;
         	
         	// Prepare job configuration
+
         	JobConf jobConfiguration = new JobConf(this.getConf());
         	jobConfiguration.setJarByClass(this.getClass());
+
+			jobConfiguration.setJobName(getJobName());
 
         	jobConfiguration.setMapOutputKeyClass(getMapOutputKeyClass());
         	jobConfiguration.setMapOutputValueClass(getMapOutputValueClass());
@@ -247,5 +251,8 @@ public abstract class MapReduceJob<ParamType> extends Configured implements Tool
 	 * @throws IOException if an exception occurs while reading job output
 	 */
 	protected abstract void processJobOutput(RunningJob jobExecution) throws IOException;
-	
+
+	protected String getJobName() {
+		return jobName;
+	}
 }

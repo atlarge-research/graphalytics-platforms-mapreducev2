@@ -31,18 +31,139 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>org.apache.hadoop</groupId>
-			<artifactId>hadoop-client</artifactId>
-			<version>${hadoop.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.hadoop</groupId>
-			<artifactId>hadoop-minicluster</artifactId>
-			<version>${hadoop.version}</version>
-			<scope>test</scope>
-		</dependency>
+
+
 	</dependencies>
+
+	<profiles>
+		<profile>
+			<id>original</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-client</artifactId>
+					<version>${hadoop.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-minicluster</artifactId>
+					<version>${hadoop.version}</version>
+					<scope>test</scope>
+				</dependency>
+				<dependency>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+					<version>1.1.1</version>
+				</dependency>
+				<dependency>
+					<groupId>nl.tudelft.pds.granula</groupId>
+					<artifactId>mapreducev2-analyzer</artifactId>
+					<version>0.1.2</version>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<!-- Maven Shade plugin used by platform modules to create fat JARs -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-shade-plugin</artifactId>
+						<version>2.3</version>
+
+						<configuration>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<minimizeJar>false</minimizeJar>
+							<filters>
+								<filter>
+									<artifact>*.*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+							<finalName>${artifactId}-${version}-original</finalName>
+						</configuration>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>shade</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>granula</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-client</artifactId>
+					<version>${hadoop.version}-withGranula</version>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-minicluster</artifactId>
+					<version>${hadoop.version}</version>
+					<scope>test</scope>
+				</dependency>
+				<dependency>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+					<version>1.1.1</version>
+				</dependency>
+				<dependency>
+					<groupId>nl.tudelft.pds.granula</groupId>
+					<artifactId>mapreducev2-analyzer</artifactId>
+					<version>0.1.2</version>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<!-- Maven Shade plugin used by platform modules to create fat JARs -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-shade-plugin</artifactId>
+						<version>2.3</version>
+
+						<configuration>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<minimizeJar>false</minimizeJar>
+							<filters>
+								<filter>
+									<artifact>*.*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+							<finalName>${artifactId}-${version}-withGranula</finalName>
+						</configuration>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>shade</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 
 	<build>
 		<plugins>
@@ -57,34 +178,6 @@
 				</configuration>
 			</plugin>
 
-			<!-- Maven Shade plugin used by platform modules to create fat JARs -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.3</version>
-				<configuration>
-					<createDependencyReducedPom>false</createDependencyReducedPom>
-					<minimizeJar>false</minimizeJar>
-					<filters>
-						<filter>
-							<artifact>*.*</artifact>
-							<excludes>
-								<exclude>META-INF/*.SF</exclude>
-								<exclude>META-INF/*.DSA</exclude>
-								<exclude>META-INF/*.RSA</exclude>
-							</excludes>
-						</filter>
-					</filters>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 
 			<!-- Maven release management -->
 			<plugin>

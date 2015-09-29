@@ -39,6 +39,7 @@ public class UndirectedStatsJob extends MapReduceJob<Object> {
 
 	public UndirectedStatsJob(String inputPath, String intermediatePath, String outputPath, Object parameters) {
 		super(inputPath, intermediatePath, outputPath, parameters);
+		jobName = "UndirectedStats";
 	}
 
 	@Override

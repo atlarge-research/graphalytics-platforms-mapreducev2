@@ -48,6 +48,7 @@ public class BreadthFirstSearchJob extends MapReduceJob<BreadthFirstSearchParame
 			String outputPath, BreadthFirstSearchParameters parameters, boolean directed) {
 		super(inputPath, intermediatePath, outputPath, parameters);
 		this.directed = directed;
+		jobName = "BreadthFirstSearch";
 	}
 
 	@Override

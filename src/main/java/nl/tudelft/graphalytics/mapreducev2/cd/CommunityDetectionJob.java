@@ -49,6 +49,7 @@ public class CommunityDetectionJob extends MapReduceJob<CommunityDetectionParame
 			CommunityDetectionParameters parameters, boolean directed) {
 		super(inputPath, intermediatePath, outputPath, parameters);
 		this.directed = directed;
+		jobName = "CommunityDetection";
 	}
 
 	@Override
@@ -123,7 +124,5 @@ public class CommunityDetectionJob extends MapReduceJob<CommunityDetectionParame
         System.out.println("* Nodes visited: " + nodesVisisted + " *");
         System.out.println("************************************\n");
 	}
-	
-	
-	
+
 }
