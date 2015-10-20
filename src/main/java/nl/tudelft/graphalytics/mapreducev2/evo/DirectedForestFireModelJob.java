@@ -40,7 +40,8 @@ public class DirectedForestFireModelJob extends MapReduceJob<ForestFireModelPara
     public DirectedForestFireModelJob(String inputPath, String intermediatePath, String outputPath, ForestFireModelParameters parameters) {
     	super(inputPath, intermediatePath, outputPath, parameters);
     	burnedEdges = new HashMap<>();
-    }
+		jobName = "DirectedForestFireModel";
+	}
 	
     @Override
 	protected Class<?> getMapOutputKeyClass() {
@@ -134,5 +135,5 @@ public class DirectedForestFireModelJob extends MapReduceJob<ForestFireModelPara
         System.out.println("* FFM Hoops " + getIteration() + " FINISHED *");
         System.out.println("************************************\n");
 	}
-	
+
 }

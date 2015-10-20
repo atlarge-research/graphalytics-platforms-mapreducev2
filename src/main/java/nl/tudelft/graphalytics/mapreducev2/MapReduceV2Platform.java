@@ -20,19 +20,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import nl.tudelft.graphalytics.PlatformExecutionException;
-import nl.tudelft.graphalytics.domain.PlatformBenchmarkResult;
-import nl.tudelft.graphalytics.domain.NestedConfiguration;
+import nl.tudelft.graphalytics.domain.*;
+import nl.tudelft.graphalytics.mapreducev2.reporting.logging.MapReduceV2Logger;
+import nl.tudelft.graphalytics.reporting.granula.GranulaManager;
+import nl.tudelft.pds.granula.modeller.mapreducev2.job.MapReduceV2;
+import nl.tudelft.pds.granula.modeller.model.job.JobModel;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import nl.tudelft.graphalytics.domain.Graph;
 import nl.tudelft.graphalytics.Platform;
-import nl.tudelft.graphalytics.domain.Algorithm;
 import nl.tudelft.graphalytics.configuration.ConfigurationUtil;
 import nl.tudelft.graphalytics.mapreducev2.bfs.BreadthFirstSearchJobLauncher;
 import nl.tudelft.graphalytics.mapreducev2.cd.CommunityDetectionJobLauncher;
@@ -50,7 +49,7 @@ import nl.tudelft.graphalytics.mapreducev2.stats.STATSJobLauncher;
  * @author Tim Hegeman
  */
 public class MapReduceV2Platform implements Platform {
-	private static final Logger log = LogManager.getLogger();
+//	private static final Logger log = LogManager.getLogger();
 	
 	private static final Map<Algorithm, Class<? extends MapReduceJobLauncher>> jobClassesPerAlgorithm = new HashMap<>();
 
@@ -81,7 +80,7 @@ public class MapReduceV2Platform implements Platform {
 		try {
 			mrConfig = new PropertiesConfiguration("mapreducev2.properties");
 		} catch (ConfigurationException e) {
-			log.warn("Could not find or load mapreducev2.properties.");
+//			log.warn("Could not find or load mapreducev2.properties.");
 			mrConfig = new PropertiesConfiguration();
 		}
 		hdfsDirectory = mrConfig.getString(HDFS_DIRECTORY_KEY, HDFS_DIRECTORY);
@@ -89,7 +88,10 @@ public class MapReduceV2Platform implements Platform {
 
 	// TODO: Should the preprocessing be part of executeAlgorithmOnGraph?
 	public void uploadGraph(Graph graph, String graphFilePath) throws IOException {
-		log.entry(graph, graphFilePath);
+//		log.entry(graph, graphFilePath);
+
+
+		MapReduceV2Logger.stopCoreLogging();
 		
 		String hdfsPathRaw = hdfsDirectory + "/mapreducev2/input/raw-" + graph.getName();
 		String hdfsPath = hdfsDirectory + "/mapreducev2/input/" + graph.getName();
@@ -125,39 +127,74 @@ public class MapReduceV2Platform implements Platform {
 		}
 		
 		hdfsPathForGraphName.put(graph.getName(), hdfsPath);
-		log.exit();
+
+		MapReduceV2Logger.startCoreLogging();
+//		log.exit();
 	}
 
-	public PlatformBenchmarkResult executeAlgorithmOnGraph(Algorithm algorithm, Graph graph, Object parameters)
+
+	@Override
+	public void preBenchmark(Benchmark benchmark) {
+
+		MapReduceV2Logger.stopCoreLogging();
+		if(GranulaManager.isLoggingEnabled) {
+			String logDataPath = benchmark.getLogPath();
+			MapReduceV2Logger.startPlatformLogging(logDataPath + "/OperationLog/driver.logs");
+		}
+
+	}
+
+	@Override
+	public void postBenchmark(Benchmark benchmark) {
+
+		if(GranulaManager.isLoggingEnabled) {
+			String logDataPath = benchmark.getLogPath();
+			MapReduceV2Logger.collectYarnLogs(logDataPath);
+			MapReduceV2Logger.stopPlatformLogging();
+		}
+		MapReduceV2Logger.startCoreLogging();
+	}
+
+	public PlatformBenchmarkResult executeAlgorithmOnGraph(Benchmark benchmark)
 			throws PlatformExecutionException {
-		log.entry(algorithm, graph);
+
+		Algorithm algorithm = benchmark.getAlgorithm();
+		Graph graph = benchmark.getGraph();
+		Object parameters = benchmark.getAlgorithmParameters();
+
+//		log.entry(algorithm, graph);
+
 		int result;
 		try {
 			MapReduceJobLauncher job = jobClassesPerAlgorithm.get(algorithm).newInstance();
+
 			job.parseGraphData(graph, parameters);
 			job.setInputPath(hdfsPathForGraphName.get(graph.getName()));
 			job.setIntermediatePath(hdfsDirectory + "/mapreducev2/intermediate/" + algorithm + "-" + graph.getName());
 			job.setOutputPath(hdfsDirectory + "/mapreducev2/output/" + algorithm + "-" + graph.getName());
-			
+
 			// Set the number of reducers, if specified
 			if (mrConfig.containsKey("mapreducev2.reducer-count"))
 				job.setNumReducers(ConfigurationUtil.getInteger(mrConfig, "mapreducev2.reducer-count"));
-			
-			result = ToolRunner.run(new Configuration(), job, new String[0]);
+
+			Configuration configuration = new Configuration();
+			configuration.set("mapreduce.job.user.classpath.first", "true");
+			result = ToolRunner.run(configuration, job, new String[0]);
 		} catch (Exception e) {
 			throw new PlatformExecutionException("MapReduce job failed with exception: ", e);
 		}
 
 		if (result != 0)
 			throw new PlatformExecutionException("MapReduce job completed with exit code = " + result);
+
 		return new PlatformBenchmarkResult(NestedConfiguration.empty());
 	}
 
 	public void deleteGraph(String graphName) {
 		// TODO Auto-generated method stub
-		log.entry(graphName);
+//		log.entry(graphName);
 
-		log.exit();
+//		log.exit();
 	}
 	
 	@Override
@@ -176,4 +213,8 @@ public class MapReduceV2Platform implements Platform {
 		}
 	}
 
+	@Override
+	public JobModel getGranulaModel() {
+		return new MapReduceV2();
+	}
 }

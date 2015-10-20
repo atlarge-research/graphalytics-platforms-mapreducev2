@@ -43,6 +43,7 @@ public class ConnectedComponentsJob extends MapReduceJob<Object> {
 			String outputPath, Object parameters, boolean directed) {
 		super(inputPath, intermediatePath, outputPath, parameters);
 		this.directed = directed;
+		jobName = "ConnectedComponents";
 	}
 
 	@Override
@@ -110,5 +111,5 @@ public class ConnectedComponentsJob extends MapReduceJob<Object> {
         System.out.println("* Nodes updated: "+ nodesUpdated + " *");
         System.out.println("************************************\n");
 	}
-	
+
 }
